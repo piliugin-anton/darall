@@ -10,7 +10,7 @@
 <script setup lang="ts">
     import { ref, computed } from 'vue'
 
-    const switchRef = ref(null)
+    const switchRef = ref<HTMLDivElement | null>(null)
     const props = defineProps<{ states: string[], active: number }>()
 
     const activeBgStyle = computed(() => {
@@ -18,8 +18,9 @@
             left: '0px',
             width: '0px'
         }
-        const activeElement = switchRef.value?.children[props.active + 1] as HTMLDivElement
-        if (activeElement) {
+
+        if (switchRef?.value?.children) {
+            const activeElement = switchRef.value.children[props.active + 1] as HTMLDivElement
             const rect = activeElement.getBoundingClientRect()
             style.left = `${activeElement.offsetLeft}px`
             style.width = `${rect.width + 8}px`

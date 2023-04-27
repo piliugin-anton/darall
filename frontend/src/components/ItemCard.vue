@@ -2,13 +2,13 @@
   <article class="item" :class="{ clickable: !editable, 'no-hover': isItem }" @onclick="!editable && emit('click', $event)">
     <div class="item__image" :style="`background-image: url('${image}')`">
       <label v-if="editable" class="item__image__label" :class="{ 'with-image' : image }">
-        <input class="item__image__file" type="file" @change="$emit('imageChange', $event.target.files)" accept=".jpg, .jpeg, .png" />
+        <input class="item__image__file" type="file" @change="$emit('imageChange', ($event.target as HTMLInputElement & EventTarget).files)" accept=".jpg, .jpeg, .png" />
       </label>
     </div>
-    <div ref="titleRef" v-text="title" class="item__title" :contenteditable="editable" @focus="() => handleFocus(titleRef, 'title')" @blur="() => handleBlur(titleRef, 'title')" @input="() => handleInput(titleRef, 'title')"></div>
-    <div v-if="description !== undefined" ref="descriptionRef" v-text="description" class="item__description" :contenteditable="editable" @focus="() => handleFocus(descriptionRef, 'description')" @blur="() => handleBlur(descriptionRef, 'description')" @input="() => handleInput(descriptionRef, 'description')"></div>
+    <div ref="titleRef" v-text="title" class="item__title" :contenteditable="editable" @focus="() => titleRef && handleFocus(titleRef, 'title')" @blur="() => titleRef && handleBlur(titleRef, 'title')" @input="() => titleRef && handleInput(titleRef, 'title')"></div>
+    <div v-if="description !== undefined" ref="descriptionRef" v-text="description" class="item__description" :contenteditable="editable" @focus="() => descriptionRef && handleFocus(descriptionRef, 'description')" @blur="() => descriptionRef && handleBlur(descriptionRef, 'description')" @input="() => descriptionRef && handleInput(descriptionRef, 'description')"></div>
     <div v-if="price !== undefined" class="item__price">
-      <div ref="priceRef" v-text="priceFormatted" :contenteditable="editable" class="item__price__text" @keypress="!$event.key.match(/^[0-9]{1}$/) && $event.preventDefault()" @focus="() => handleFocus(priceRef, 'price')" @blur="() => handleBlur(priceRef, 'price')" @input="() => handleInput(priceRef, 'price')"></div>
+      <div ref="priceRef" v-text="priceFormatted" :contenteditable="editable" class="item__price__text" @keypress="!$event.key.match(/^[0-9]{1}$/) && $event.preventDefault()" @focus="() => priceRef && handleFocus(priceRef, 'price')" @blur="() => priceRef && handleBlur(priceRef, 'price')" @input="() => priceRef && handleInput(priceRef, 'price')"></div>
       <div>&nbsp;&#8381;</div>
     </div>
     <div v-if="!editable && quantity !== undefined" class="item__controls">
@@ -24,29 +24,31 @@
   import { ref, onUpdated, computed } from 'vue'
   import { getCaretPosition, setCaretPosition, numberWithSpaces } from '../helpers'
 
-  const props = defineProps<{ title: string, image: string, editable: boolean, description?: string, price?: number | string, quantity?: number, created?: boolean }>()
+  const props = defineProps<{ title: string, image: string, editable: boolean, description?: string, price?: string | number, quantity?: number, created?: boolean }>()
 
-  const titleRef = ref(null)
-  const descriptionRef = ref(null)
-  const priceRef = ref(null)
-  const focusElement = ref(null)
+  const titleRef = ref<HTMLDivElement | null>(null)
+  const descriptionRef = ref<HTMLDivElement | null>(null)
+  const priceRef = ref<HTMLDivElement | null>(null)
+  const focusElement = ref<HTMLDivElement | null>(null)
   const caretPosition = ref(0)
-  const emit = defineEmits(['input', 'blur', 'focus', 'imageChange', 'qtyChange', 'delete'])
+  const emit = defineEmits(['input', 'blur', 'focus', 'imageChange', 'qtyChange', 'delete', 'click'])
 
-  const priceFormatted = computed(() => props.editable ? props.price : numberWithSpaces(props.price))
+  const priceFormatted = computed(() => props.editable ? props.price : numberWithSpaces(Number(props.price) || 0))
   const isItem = computed(() => props.description || props.price || props.quantity)
 
-  function handleFocus(reference: HTMLElement, key: string) {
+  function handleFocus(reference: HTMLDivElement, key: string) {
     focusElement.value = reference
     emit('focus', key)
   }
 
-  function handleBlur(reference: HTMLElement, key: string) {
+  function handleBlur(_reference: HTMLDivElement, key: string) {
     focusElement.value = null
     emit('blur', key)
   }
 
-  function handleInput(reference: HTMLElement, key: string) {
+  function handleInput(_reference: HTMLDivElement, key: string) {
+    if (!focusElement.value) return
+
     caretPosition.value = getCaretPosition(focusElement.value)
 
     emit('input', focusElement.value.innerText, key)

@@ -19,8 +19,9 @@ import { useAuthStore } from '../store'
 import { errorsList } from '../helpers'
 import FormInput from '../components/FormInput.vue'
 import FormButton from '../components/FormButton.vue'
+import { FieldValidationError } from '../../../backend/node_modules/express-validator'
 
-const loginErrors = ref([])
+const loginErrors = ref<string[] | FieldValidationError[]>([])
 const route = useRoute()
 const snackbar = useSnackbar()
 
@@ -35,17 +36,18 @@ const rules = {
 
 const v$ = useVuelidate(rules, state)
 
-async function handleSubmit(ev: Event) {
+async function handleSubmit() {
     const auth = useAuthStore()
     
     try {
         const result = await auth.login({ email: state.email, password: state.password })
-        if (!result.errors) {
-            router.push(route.query.redirect || { name: 'Home' })
+        if (!('errors' in result)) {
+            const to = route.query.redirect as string || { name: 'Home' }
+            router.push(to)
         } else {
             loginErrors.value = errorsList(result.errors)
         }
-    } catch (ex: Error) {
+    } catch (ex: any) {
         snackbar.add({
             type: 'error',
             text: 'Ошибка при попытке входа'

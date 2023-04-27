@@ -6,7 +6,7 @@
                     <div class="categories__container__content">
                         <h1>Категория <span class="categories__container__content__text">{{ selectedCategory.title }}</span></h1>
                         <div class="categories__container__content__list">
-                            <ItemCard v-for="item in computedItems" :key="`item-${item.id}`" class="edit__container__items__item" :title="item.state.title" :description="item.state.description" :price="item.state.price" :quantity="item.quantity" :image="item.state.image" :editable="applicationStore.mode === MODE.Редактирование" :created="item.state.created" @focus="item.handleFocus" @blur="item.handleBlur" @input="item.handleInput" @imageChange="item.handleImageChange" @delete="item.handleDelete" />
+                            <ItemCard v-for="(item, index) in computedItems" :key="`item-${index}`" class="edit__container__items__item" :title="item.state.title" :description="item.state.description" :price="item.state.price" :quantity="item.quantity" :image="item.state.image" :editable="applicationStore.mode === MODE.Редактирование" :created="item.state.created" @focus="item.handleFocus" @blur="item.handleBlur" @input="item.handleInput" @imageChange="item.handleImageChange" @delete="item.handleDelete" />
                         </div>
                     </div> 
                 </template>
@@ -19,7 +19,7 @@
                     <div class="categories__container__content">
                         <h1>Категории</h1>
                         <div class="categories__container__content__list">
-                            <ItemCard v-for="data in computedCategories" :key="`category-${data.categoryId.value}`" :title="data.state.title" :image="data.state.image" :editable="applicationStore.mode === MODE.Редактирование" :created="data.state.created" @focus="data.handleFocus" @blur="data.handleBlur" @input="data.handleInput" @imageChange="data.handleImageChange" @click="() => applicationStore.mode === MODE.Просмотр && handleClick(data.categoryId.value)" @delete="data.handleDelete" />
+                            <ItemCard v-for="data in computedCategories" :key="`category-${data.categoryId.value}`" :title="data.state.title" :image="data.state.image" :editable="applicationStore.mode === MODE.Редактирование" :created="data.state.created" @focus="data.handleFocus" @blur="data.handleBlur" @input="data.handleInput" @imageChange="data.handleImageChange" @click="handleClick" @delete="data.handleDelete" />
                         </div>
                     </div>
                 </template>
@@ -37,7 +37,7 @@ import { computed, unref } from 'vue'
 import { useRoute } from 'vue-router'
 import ItemCard from '../components/ItemCard.vue'
 import router from '../router'
-import { Category } from '../api'
+import { Category } from '../../../backend/node_modules/.prisma/client/index'
 import { useApplicationStore, MODE, CartItem } from '../store'
 import { Item } from '../../../backend/node_modules/.prisma/client/index'
 import useEdit from '../helpers/useEdit'
@@ -47,20 +47,23 @@ const route = useRoute()
 const selectedCategory = computed(() => applicationStore.categories.find((category: Category) => category.id === Number(route.query.category)))
 const computedCategories = computed(() => applicationStore.categories.map((category: Category) => useEdit({ data: category, isItem: false })))
 const computedItems = computed(() => {
-    const selected = unref(selectedCategory)
-    if (!selected.items) return []
+    const selected = unref(selectedCategory) as Category & { items: Item[] }
+    if (!Array.isArray(selected.items)) return []
 
     return selected.items.map((item: Item) => {
         const data = useEdit({ data: item, isItem: true })
         const inCart = applicationStore.cart.find((cartItem: CartItem) => cartItem.id === item.id)
-        data.quantity = inCart ? inCart.quantity : 0
+        const dataItem = data as typeof data & { quantity: number }
+        dataItem.quantity = inCart ? inCart.quantity : 0
 
-        return data
+        return dataItem
     })
 })
 
-function handleClick(id: number) {
-    router.push({ name: 'Home', query: { category: id } })
+function handleClick() {
+    if (applicationStore.mode !== MODE.Просмотр || !route.params.category) return
+
+    router.push({ name: 'Home', query: { category: route.params.category } })
 }
 </script>
 

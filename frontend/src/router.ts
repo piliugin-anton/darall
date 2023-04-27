@@ -38,7 +38,7 @@ const router = createRouter({
     routes
 })
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to, _from) => {
     const auth = useAuthStore()
   
     if (to.meta.requiresAuth && !auth.token) {
@@ -47,7 +47,7 @@ router.beforeEach(async (to, from) => {
             // save the location we were at to come back later
             query: { redirect: to.fullPath },
           }
-    } else if (to.meta.requiresAdmin && auth.user.role !== "ADMIN") {
+    } else if (to.meta.requiresAdmin && auth?.user?.role !== 'ADMIN') {
         return {
             name: 'Home'
         }

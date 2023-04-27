@@ -53,7 +53,7 @@ export const issueToken = async (data: UserWithoutPassword, expiresIn = '1800s',
     return { token, serialized }
 }
 
-export const JWTAuth = async (req: Request, res: Response, next: NextFunction) => {
+export const JWTAuth = async (req: Request, _res: Response, next: NextFunction) => {
     const unauthorizedMessage = 'Access token is required'
 
     if (!req.headers.authorization) return next(new CustomError(unauthorizedMessage, 401))
@@ -69,7 +69,7 @@ export const JWTAuth = async (req: Request, res: Response, next: NextFunction) =
     })
 }
 
-export const JWTRefresh = async (req: Request, res: Response, next: NextFunction) => {
+export const JWTRefresh = async (req: Request, _res: Response, next: NextFunction) => {
     const unauthorizedMessage = 'Access token is required'
 
     if (!req.cookies.refreshToken) return next(new CustomError(unauthorizedMessage, 401))

@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-    import { ErrorObject } from '@vuelidate/core'
+    import type { ErrorObject } from '@vuelidate/core'
 
     defineProps<{ text: string, modelValue: string, type: string, errors: ErrorObject[] }>()
     const emit = defineEmits(['update:modelValue', 'blur'])

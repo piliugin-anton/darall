@@ -1,72 +1,13 @@
-import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosResponse, isAxiosError, InternalAxiosRequestConfig } from 'axios'
 import mem from 'mem'
 import { useAuthStore } from '../store/auth'
 import { AuthState } from '../store/auth'
 import { Category, Item } from '../../../backend/node_modules/.prisma/client'
+import { FieldValidationError } from '../../../backend/node_modules/express-validator'
+import { UserWithoutPassword } from '../../../backend/jwt'
+import { ExtendedCategory } from '../store/application'
 
 const baseURL = 'http://localhost:3000'
-
-const instance = axios.create({ baseURL })
-
-instance.interceptors.request.use((config: AxiosRequestConfig) => {
-    const auth = useAuthStore()
-    if (auth.token) {
-        config.headers = {
-            ...config.headers,
-            authorization: `Bearer ${auth.token}`,
-        }
-    }
-    return config
-}, function(error: AxiosError) {
-    return Promise.reject(error)
-})
-
-instance.interceptors.response.use((response: AxiosResponse) => response,
-    async (error: AxiosError) => {
-      const config = error?.config
-  
-      if (error?.response?.status === 401 && !config?.sent) {
-        config.sent = true
-  
-        const token = await memoizedRefreshToken()
-  
-        if (token) {
-          config.headers = {
-            ...config.headers,
-            authorization: `Bearer ${token}`,
-          }
-        }
-  
-        return axios(config)
-      }
-
-      return Promise.reject(error)
-    }
-)
-
-const refreshTokenFn = async () => {
-    const auth = useAuthStore()
-
-    try {
-      const { token } = await refreshToken()
-  
-      if (!token) {
-        auth.logout()
-      } else {
-        auth.refresh(token)
-      }
-  
-      return token
-    } catch (error) {
-        auth.logout()
-    }
-};
-  
-const maxAge = 18000
-  
-const memoizedRefreshToken = mem(refreshTokenFn, {
-    maxAge,
-})
 
 export interface SignupForm {
     email: string
@@ -79,78 +20,181 @@ export interface LoginForm {
     password: string
 }
 
-export const signup = (form: SignupForm): Promise<AuthState> => instance
-    .post<AuthState>('/user/signup', form, { withCredentials: true })
-    .then((response: { data: AuthState }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+export interface ApiError {
+    errors: string[] | FieldValidationError[]
+}
 
-export const login = (form: LoginForm): Promise<AuthState> => instance
-    .post<AuthState>('/user/login', form, { withCredentials: true })
-    .then((response: { data: AuthState }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+const instance = axios.create({ baseURL })
 
-export const refreshToken = (): Promise<AuthState> => instance
-    .get('/user/refresh', { withCredentials: true })
-    .then((response: { data: AuthState }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+instance.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
+    const auth = useAuthStore()
+    if (auth.token) config.headers.set('Authorization', `Bearer ${auth.token}`)
 
-export const getPrivileges = (): Promise<AuthState> => instance
-    .get('/user/getPrivileges')
-    .then((response: { data: AuthState }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+    return config
+}, function(error: AxiosError) {
+    return Promise.reject(error)
+})
 
-export const getCategories = (): Promise<Category[]> => instance
-    .get('/categories')
-    .then((response: { data: Category[] }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+instance.interceptors.response.use((response: AxiosResponse) => response,
+    async (error: AxiosError) => {
+      const config = error?.config as InternalAxiosRequestConfig<any> & { sent: boolean }
+      if (error?.response?.status === 401 && !config.sent) {
+        config.sent = true
+  
+        const token = await memoizedRefreshToken()
+  
+        if (token) config.headers.set('Authorization', `Bearer ${token}`)
+  
+        return axios(config)
+      }
 
-export const getCategory = (id: string): Promise<Category> => instance
-    .get(`/categories/${id}`)
-    .then((response: { data: Category }) => response.data)
-    .catch((error: AxiosError) => {})
+      return Promise.reject(error)
+    }
+)
 
-export const createCategory = (data: FormData): Promise<Category> => instance
-    .post('/categories', data, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
-    .then((response: { data: Category }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+const refreshTokenFn = async () => {
+    const auth = useAuthStore()
 
-export const updateCategory = (id: string, data: FormData): Promise<Category> => instance
-    .put(`/categories/${id}`, data, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
-    .then((response: { data: Category }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+    try {
+      const data = await refreshToken()
+  
+      if ('token' in data && typeof data.token === 'string') {
+        auth.refresh(data.token)
+        return data.token
+      } else {
+        auth.logout()
+      }
+    } catch (error) {
+        auth.logout()
+    }
+};
+  
+const maxAge = 18000
+  
+const memoizedRefreshToken = mem(refreshTokenFn, {
+    maxAge,
+})
 
-export const deleteCategory = (id: string): Promise<Category> => instance
-    .delete(`/categories/${id}`)
-    .then((response: { data: Category }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+export async function signup(form: SignupForm): Promise<AuthState | ApiError> {
+    try {
+        const { data } = await instance.post<AuthState>('/user/signup', form, { withCredentials: true })
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
 
-export const createItem = (data: FormData): Promise<Item> => instance
-    .post('/items', data, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
-    .then((response: { data: Item }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+export async function login(form: LoginForm): Promise<AuthState | ApiError> {
+    try {
+        const { data } = await instance.post<AuthState>('/user/login', form, { withCredentials: true })
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
 
-export const updateItem = (id: string, data: FormData): Promise<Item> => instance
-    .put(`/items/${id}`, data, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
-    .then((response: { data: Item }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+export async function refreshToken(): Promise<AuthState | ApiError> {
+    try {
+        const { data } = await instance.get<AuthState>('/user/refresh', { withCredentials: true })
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
 
-export const deleteItem = (id: string): Promise<Item> => instance
-    .delete(`/items/${id}`)
-    .then((response: { data: Item }) => response.data)
-    .catch((error: AxiosError) => console.error(error))
+export async function getPrivileges(): Promise<UserWithoutPassword | ApiError> {
+    try {
+        const { data } = await instance.get<UserWithoutPassword>('/user/getPrivileges')
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
+
+export async function getCategories(): Promise<ExtendedCategory[] | ApiError> {
+    try {
+        const { data } = await instance.get<ExtendedCategory[]>('/categories')
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
+
+export async function getCategory(id: string): Promise<ExtendedCategory | ApiError> {
+    try {
+        const { data } = await instance.get<ExtendedCategory>(`/categories/${id}`)
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
+
+export async function createCategory(formData: FormData): Promise<Category | ApiError> {
+    try {
+        const { data } = await instance.post<Category>('/categories', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
+
+export async function updateCategory(id: string, formData: FormData): Promise<Category | ApiError> {
+    try {
+        const { data } = await instance.put<Category>(`/categories/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
+
+export async function deleteCategory(id: string): Promise<Category | ApiError> {
+    try {
+        const { data } = await instance.delete<Category>(`/categories/${id}`)
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
+
+export async function createItem(formData: FormData): Promise<Item | ApiError> {
+    try {
+        const { data } = await instance.post<Item>('/items', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
+
+export async function updateItem(id: string, formData: FormData): Promise<Item | ApiError> {
+    try {
+        const { data } = await instance.put<Item>(`/items/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}
+
+export async function deleteItem(id: string): Promise<Item | ApiError> {
+    try {
+        const { data } = await instance.delete<Item>(`/items/${id}`)
+        return data
+    } catch (ex: any) {
+        return isAxiosError(ex) ? { errors: [ex.message] } as ApiError : ex
+    }
+}

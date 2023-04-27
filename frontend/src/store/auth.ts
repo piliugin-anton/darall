@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
-//import { useRoute } from 'vue-router'
 import { UserWithoutPassword } from '../../../backend/jwt'
 import { login, LoginForm, signup, SignupForm, getPrivileges } from '../api'
-//import router from '../router'
 
 export interface AuthState {
   user: UserWithoutPassword | null
@@ -20,7 +18,7 @@ export const useAuthStore = defineStore('auth', {
     } as AuthState
   },
   actions: {
-    _updateUser(user: UserWithoutPassword) {
+    _updateUser(user: UserWithoutPassword | null) {
       this.user = user
       if (!user) {
         localStorage.removeItem('user')
@@ -28,17 +26,17 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('user', JSON.stringify(this.user))
       }
     },
-    _updateToken(token: string) {
+    _updateToken(token: string | null) {
       this.token = token
       if (!token) {
         localStorage.removeItem('token')
       } else {
-        localStorage.setItem('token', this.token)
+        localStorage.setItem('token', token)
       }
     },
     async login(form: LoginForm) {
       const result = await login(form)
-      if (!result.errors) {
+      if (!('errors' in result)) {
         this._updateUser(result.user)
         this._updateToken(result.token)
       }
@@ -47,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async signup(form: SignupForm) {
       const result = await signup(form)
-      if (!result.errors) {
+      if (!('errors' in result)) {
         this._updateUser(result.user)
         this._updateToken(result.token)
       }
@@ -65,7 +63,7 @@ export const useAuthStore = defineStore('auth', {
       if (!this.token) return
 
       const result = await getPrivileges()
-      if (!result.errors) {
+      if (!('errors' in result)) {
         this._updateUser(result)
       }
     }

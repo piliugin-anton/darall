@@ -2,7 +2,7 @@
   <main>
     <Header />
     <RouterView v-slot="{ Component, route }">
-      <transition :name="route.meta.transition || 'fade'" mode="out-in" :duration="250">
+      <transition :name="(route.meta.transition || 'fade') as string" mode="out-in" :duration="250">
         <component :is="Component" :key="route.path" />
       </transition>
     </RouterView>

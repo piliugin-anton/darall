@@ -9,14 +9,19 @@ export enum MODE {
 
 export interface ApplicationState {
   mode: MODE
-  categories: Category[],
+  categories: ExtendedCategory[]
   cart: CartItem[]
+  _initialLoad: boolean
 }
 
 export interface CartItem {
   id: number
   quantity: number
 }
+
+type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
+export type NewItem = Optional<Item, 'id' | 'image'> & { _added?: boolean }
+export type ExtendedCategory = Category & { items: Item[] | NewItem[] }
 
 export const useApplicationStore = defineStore('application', {
   state: () => ({
@@ -26,10 +31,10 @@ export const useApplicationStore = defineStore('application', {
     cart: []
   } as ApplicationState),
   actions: {
-    _updateItems(item: Item, remove: boolean = false) {
-      const category = this.categories.find((cat: Category) => cat.id === item.categoryId)
+    _updateItems(item: NewItem | Item, remove: boolean = false) {
+      const category = this.categories.find((cat: Category) => cat.id === item.categoryId) as ExtendedCategory
       if (category) {
-        const findInArray = category.items.findIndex((itemInArray: Item) => itemInArray.id === item.id || itemInArray._added)
+        const findInArray = category.items.findIndex((itemInArray: any) => itemInArray.id === item.id || itemInArray._added)
 
         if (remove && findInArray > -1) {
           category.items.splice(findInArray, 1)
@@ -39,37 +44,38 @@ export const useApplicationStore = defineStore('application', {
         if (findInArray > -1) {
           category.items.splice(findInArray, 1, item)
         } else {
-          category.items.push(item)
+          category.items.push(item as Item)
         }
       }
     },
     changeMode(mode: MODE) {
       this.mode = mode
     },
-    async fetchCategories(force: boolean) {
+    async fetchCategories(force?: boolean) {
       if (!this._initialLoad || force) {
         const result = await API.getCategories()
-        if (!result.errors) {
-          this.categories = result
+        if (!('errors' in result)) {
+          this.categories = result as ExtendedCategory[]
           this._initialLoad = true
         }
       }
     },
     async getCategory(id: string) {
-      let category = this.categories.find((category: Category) => category.id === Number(id))
-      let updateCategories = false
+      let category = this.categories.find((category: ExtendedCategory) => category.id === Number(id))
+
       if (!category) {
-        category = await API.getCategory(id)
-        if (category && !category.errors) updateCategories = true
+        const result = await API.getCategory(id)
+        if (!('errors' in result)) {
+          category = result
+          this.categories.push(category)
+        }
       }
-      
-      if (updateCategories) this.categories.push(category)
 
       return category
     },
     async createCategory(data: FormData) {
-      const result = await API.createCategory(data)
-      if (!result.errors) {
+      const result = await API.createCategory(data) as ExtendedCategory
+      if (!('errors' in result)) {
         if (!Array.isArray(result.items)) result.items = []
         this.categories.push(result)
       }
@@ -77,8 +83,8 @@ export const useApplicationStore = defineStore('application', {
       return result
     },
     async updateCategory(id: string, data: FormData) {
-      const result = await API.updateCategory(id, data)
-      if (!result.errors) {
+      const result = await API.updateCategory(id, data) as ExtendedCategory
+      if (!('errors' in result)) {
         const categoryIndex = this.categories.findIndex((category: Category) => category.id === Number(id))
         if (categoryIndex > -1) {
           if (!Array.isArray(result.items)) result.items = []
@@ -90,7 +96,7 @@ export const useApplicationStore = defineStore('application', {
     },
     async deleteCategory(id: string) {
       const result = await API.deleteCategory(id)
-      if (!result.errors) {
+      if (!('errors' in result)) {
         const categoryIndex = this.categories.findIndex((category: Category) => category.id === Number(id))
         if (categoryIndex > -1) this.categories.splice(categoryIndex, 1)
       }
@@ -99,7 +105,7 @@ export const useApplicationStore = defineStore('application', {
     },
     async createItem(data: FormData) {
       const result = await API.createItem(data)
-      if (!result.errors) {
+      if (!('errors' in result)) {
         this._updateItems(result)
       }
 
@@ -107,7 +113,7 @@ export const useApplicationStore = defineStore('application', {
     },
     async updateItem(id: string, data: FormData) {
       const result = await API.updateItem(id, data)
-      if (!result.errors) {
+      if (!('errors' in result)) {
         this._updateItems(result)
       }
 
@@ -115,7 +121,7 @@ export const useApplicationStore = defineStore('application', {
     },
     async deleteItem(id: string) {
       const result = await API.deleteItem(id)
-      if (!result.errors) {
+      if (!('errors' in result)) {
         this._updateItems(result, true)
       }
 

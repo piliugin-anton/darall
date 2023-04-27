@@ -8,7 +8,7 @@
                 <FormButton class="edit__container__add" text="Добавить позицию" color="accent" :disabled="false" @click="handleAddItem" />
             </h2>
             <div v-if="computedItems.length" class="edit__container__items">
-                <ItemCard v-for="item in computedItems" :key="`item-${item.id}`" class="edit__container__items__item" :title="item.state.title" :description="item.state.description" :price="item.state.price" :quantity="item.quantity" :image="item.state.image" :editable="true" :created="item.state.created" @focus="item.handleFocus" @blur="item.handleBlur" @input="item.handleInput" @imageChange="item.handleImageChange" @delete="item.handleDelete" />
+                <ItemCard v-for="(item, index) in computedItems" :key="`item-${index}`" class="edit__container__items__item" :title="item.state.title" :description="item.state.description" :price="item.state.price" :quantity="0" :image="item.state.image" :editable="true" :created="item.state.created" @focus="item.handleFocus" @blur="item.handleBlur" @input="item.handleInput" @imageChange="item.handleImageChange" @delete="item.handleDelete" />
             </div>
             <div v-else class="edit__container__no-data">
                 Нет данных для отображения
@@ -29,20 +29,20 @@ const applicationStore = useApplicationStore()
 const data = useEdit()
 const selectedCategory = computed(() => applicationStore.categories.find((category: Category) => category.id === Number(data.categoryId.value)))
 const computedItems = computed(() => {
-    const selected = unref(selectedCategory)
-    if (!selected?.items) return []
+    const selected = unref(selectedCategory) as Category & { items: Item[] }
+    if (!Array.isArray(selected.items)) return []
 
     return selected.items.map((item: Item) => useEdit({ data: item, isItem: true }))
 })
 
 function handleAddItem() {
-    const category = unref(selectedCategory)
-    const lastItem = category?.items[category.items.length - 1]
+    const selected = unref(selectedCategory) as Category & { items: Item[] }
+    const lastItem = selected?.items[selected.items.length - 1]
 
     if (lastItem && !lastItem.title && !lastItem.description && !lastItem.price) return
 
     applicationStore._updateItems({
-        categoryId: category.id,
+        categoryId: selected.id,
         title: '',
         description: '',
         price: 0,

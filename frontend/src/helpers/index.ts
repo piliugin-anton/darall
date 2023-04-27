@@ -1,6 +1,6 @@
-import { ValidationError } from 'express-validator'
+import type { FieldValidationError } from '../../../backend/node_modules/express-validator'
 
-export function debounce(func: Function, timeout = 300): Function {
+export function debounce(this: Function | void, func: Function, timeout = 300): Function {
     let timer: any
     return (...args: any[]) => {
         clearTimeout(timer)
@@ -10,7 +10,7 @@ export function debounce(func: Function, timeout = 300): Function {
     };
 }
 
-export const getCaretPosition = (element: HTMLElement): number => {
+export const getCaretPosition = (element: any): number => {
     let caretOffset = 0
     const doc = element.ownerDocument || element.document
     const win = doc.defaultView || doc.parentWindow
@@ -36,13 +36,15 @@ export const getCaretPosition = (element: HTMLElement): number => {
     return caretOffset
 }
 
-export const setCaretPosition = (el: HTMLElement, pos: number): number => {
+export const setCaretPosition = (el: any, pos: number): number => {
+    const doc = el.ownerDocument || el.document
+    const win = doc.defaultView || doc.parentWindow
     // Loop through all child nodes
     for (const node of el.childNodes) {
         if (node.nodeType == Node.TEXT_NODE) { // we have a text node
             if (node.length >= pos) {
                 // finally add our range
-                const range = document.createRange(), sel = window.getSelection()
+                const range = doc.createRange(), sel = win.getSelection()
                 range.setStart(node, pos)
                 range.collapse(true)
                 sel.removeAllRanges()
@@ -60,8 +62,8 @@ export const setCaretPosition = (el: HTMLElement, pos: number): number => {
     return pos
 }
 
-export const errorsList = (errors: string[] | ValidationError[]) => 
-    errors.map((error: string | ValidationError) => typeof error === 'string' ? error : `${error.path}' в ${error.location}: ${error.msg}`)
+export const errorsList = (errors: string[] | FieldValidationError[]) => 
+    errors.map((error: string | FieldValidationError) => typeof error === 'string' ? error : `${error.path}' в ${error.location}: ${error.msg}`)
 
 export const numberWithSpaces = (x: number) => {
     const parts = x.toString().split('.')

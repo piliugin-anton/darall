@@ -1,5 +1,5 @@
 import express, { Express, NextFunction, Request, Response } from 'express'
-import { query, param, body, validationResult } from 'express-validator'
+import { param, body, validationResult } from 'express-validator'
 import cookieParser from 'cookie-parser'
 import * as argon2 from 'argon2'
 import multer from 'multer'
@@ -18,14 +18,14 @@ const port = process.env.PORT
 
 const frontendUpload = path.resolve('..', 'frontend', 'public', 'upload/')
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
+    destination: (_req, _file, cb) => {
         cb(null, frontendUpload)
     },
-    filename: (req, file, cb) => {
+    filename: (_req, file, cb) => {
         cb(null, `${uuidv7()}.${file.mimetype.split('/')[1]}`)
     }
 })
-const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
+const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
     if ((file.mimetype).includes('jpeg') || (file.mimetype).includes('png') || (file.mimetype).includes('jpg')) {
         cb(null, true)
     } else {
@@ -364,8 +364,23 @@ app.post('/user/login',
         res.json({ errors: result.array() })
 })
 
-app.get('/user/me', JWTAuth, async (req: Request, res: Response) => {
-    res.json({ okay: 'AUTHORIZED!' })
+app.get('/user/me', JWTAuth, async (req: UserInfoRequest<UserWithoutPassword>, res: Response) => {
+    const { id } = req.user as UserWithoutPassword
+
+    try {
+        const user = await prisma.user.findFirst({
+            where: {
+                id
+            }
+        })
+
+        if (!user) return res.status(500).json({ errors: ['Ошибка при попытке найти пользователя'] })
+
+        const userWithoutPassword = exclude(user, ['password'])
+        return res.json(userWithoutPassword)
+    } catch (ex: any) {
+        return res.status(500).json({ errors: [ex.message] })
+    }
 })
 
 app.get('/user/getPrivileges', JWTAuth, async (req: UserInfoRequest<UserWithoutPassword>, res: Response) => {
@@ -408,7 +423,7 @@ app.get('/user/refresh', JWTRefresh, async (req: UserInfoRequest<RefreshData>, r
     }    
 })
 
-app.use((err: CustomError | unknown, req: Request, res: Response, next: NextFunction) => {
+app.use((err: CustomError | unknown, _req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {
         return next(err)
     } else if (err instanceof CustomError) res.status(err.status).json({ errors: [err.message] })

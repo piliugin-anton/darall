@@ -20,10 +20,19 @@ export default function useEdit(options: EditOptions = {}) {
 
     const { data, isItem } = options
 
-    const state = reactive({
+    interface EditState {
+        title: string
+        description?: string
+        price?: string | number
+        image: string
+        imageFile: null | File
+        created: boolean
+    }
+
+    const state = reactive<EditState>({
         title: data?.title || NO_TITLE,
-        description: data?.description || NO_DESCRIPTION,
-        price: data?.price,
+        description: data && 'description' in data && data.description ? data.description : NO_DESCRIPTION,
+        price: data && 'price' in data && data.price ? data.price : undefined,
         image: data?.image ? `/upload/${data.image}` : '',
         imageFile: null,
         created: !!data?.id
@@ -72,7 +81,7 @@ export default function useEdit(options: EditOptions = {}) {
         openDeleteModal()
     }
 
-    function handleFocus(item: string) {
+    function handleFocus(item: keyof EditState) {
         if (!state[item] === undefined) return
 
         switch (item) {
@@ -83,7 +92,7 @@ export default function useEdit(options: EditOptions = {}) {
                 if (state.description === NO_DESCRIPTION) state.description = ''
                 break;
             case 'price':
-                if (state.price == '0') state.price = ''
+                if (state.price == 0) state.price = ''
                 break;
         
             default:
@@ -91,7 +100,7 @@ export default function useEdit(options: EditOptions = {}) {
         }
     }
 
-    function handleBlur(item: string) {
+    function handleBlur(item: keyof EditState) {
         if (state[item] === undefined) return
 
         switch (item) {
@@ -133,10 +142,10 @@ export default function useEdit(options: EditOptions = {}) {
     }
 
     async function doDelete() {
-        if (state.created) {
+        if (state.created && ID.value) {
             try {
-                const result = await _fn.delete(ID.value)
-                if (!result.errors) {
+                const result = await _fn.delete(ID.value.toString())
+                if (!('errors' in result)) {
                     changesSaved()
                     if (!isItem) {
                         resetState()
@@ -159,7 +168,7 @@ export default function useEdit(options: EditOptions = {}) {
 
             const reader = new FileReader()
             reader.onload = async () => {
-                state.image = reader.result
+                state.image = reader.result as string
                 await saveChanges()
             }
             reader.readAsDataURL(image)
@@ -173,17 +182,17 @@ export default function useEdit(options: EditOptions = {}) {
             const formData = new FormData()
             formData.append('title', state.title)
             if (isItem) {
-                formData.append('categoryId', categoryId.value)
-                formData.append('description', state.description)
-                formData.append('price', state.price)
+                if (categoryId.value) formData.append('categoryId', categoryId.value.toString())
+                if (state.description) formData.append('description', state.description)
+                if (state.price) formData.append('price', state.price.toString())
             }
             if (state.imageFile) {
                 formData.append('image', state.imageFile)
             }
 
-            const result = ID.value ? await _fn.update(ID.value, formData) : await _fn.create(formData)
+            const result = ID.value ? await _fn.update(ID.value.toString(), formData) : await _fn.create(formData)
             let changePage = false
-            if (typeof result.id === 'number' && !ID.value) {
+            if ('id' in result && typeof result.id === 'number' && !ID.value) {
                 ID.value = result.id
                 if (!isItem) categoryId.value = result.id
                 state.created = true
@@ -199,16 +208,16 @@ export default function useEdit(options: EditOptions = {}) {
 
     const debounceInput = debounce(async (args: any[]) => {
         const [text, item] = args
-        if (state[item] !== undefined && state[item] !== text) {
-            state[item] = text
+        if (state[item as keyof EditState] !== undefined && state[item as keyof EditState] !== text) {
+            (state[item as keyof EditState] as any) = text
             await saveChanges()
         }
     }, 1800)
 
     const directInput = (...args: any[]) => {
         const [text, item] = args
-        if (state[item] !== undefined && state[item] !== text) {
-            state[item] = text
+        if (state[item as keyof EditState] !== undefined && state[item as keyof EditState] !== text) {
+            (state[item as keyof EditState] as any) = text
         }
     }
 
@@ -218,7 +227,7 @@ export default function useEdit(options: EditOptions = {}) {
         if (!categoryId.value) return
 
         try {
-            const category = await application.getCategory(categoryId.value)
+            const category = await application.getCategory(categoryId.value.toString())
             if (!category) {
                 snackbar.add({
                     type: 'error',
@@ -239,7 +248,7 @@ export default function useEdit(options: EditOptions = {}) {
     }
 
     if (!data) {
-        const unwatch = watch(() => routeParams.category, fetchCategory)
+        const unwatch = watch(() => (routeParams as any).category, fetchCategory)
 
         onMounted(fetchCategory)
         onUnmounted(unwatch)
