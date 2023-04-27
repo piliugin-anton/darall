@@ -1,0 +1,67 @@
+<template>
+    <section class="login">
+        <FormInput class="mb-8" v-model="state.email" type="email" text="E-mail" :errors="v$.email.$errors" @blur="v$.email.$touch" />
+        <FormInput class="mb-16" v-model="state.password" type="password" text=" Пароль" :errors="v$.password.$errors" @blur="v$.password.$touch" />
+        <div v-if="loginErrors.length">Ошибка входа: {{ loginErrors }}</div>
+        <FormButton class="mb-8" text="Войти" color="accent" :disabled="v$.$invalid" @click="handleSubmit" />
+        <router-link class="signup-link" :to="`/sign-up${$route.query.redirect ? '?redirect=' + $route.query.redirect : ''}`">Зарегистрироваться</router-link>
+    </section>
+</template>
+
+<script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useVuelidate } from '@vuelidate/core'
+import { required, email } from '@vuelidate/validators'
+import { useSnackbar } from 'vue3-snackbar'
+import router from '../router'
+import { useAuthStore } from '../store'
+import { errorsList } from '../helpers'
+import FormInput from '../components/FormInput.vue'
+import FormButton from '../components/FormButton.vue'
+
+const loginErrors = ref([])
+const route = useRoute()
+const snackbar = useSnackbar()
+
+const state = reactive({
+  email: '',
+  password: ''
+})
+const rules = {
+  email: { required, email }, // Matches state.email
+  password: { required }
+}
+
+const v$ = useVuelidate(rules, state)
+
+async function handleSubmit(ev: Event) {
+    const auth = useAuthStore()
+    
+    try {
+        const result = await auth.login({ email: state.email, password: state.password })
+        if (!result.errors) {
+            router.push(route.query.redirect || { name: 'Home' })
+        } else {
+            loginErrors.value = errorsList(result.errors)
+        }
+    } catch (ex: Error) {
+        snackbar.add({
+            type: 'error',
+            text: 'Ошибка при попытке входа'
+        })
+        console.log(ex.message)
+    }
+}
+</script>
+
+<style lang="scss">
+.login {
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.signup-link {
+    display: block;
+}
+</style>
