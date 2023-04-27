@@ -1,8 +1,0 @@
-{
-    "name": "darell",
-    "workspaces": [
-      "frontend",
-      "backend"
-    ]
-  }
-  

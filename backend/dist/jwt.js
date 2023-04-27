@@ -54,7 +54,7 @@ const issueToken = (data, expiresIn = '1800s', refreshExpiresIn = 2592000) => __
     return { token, serialized };
 });
 exports.issueToken = issueToken;
-const JWTAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const JWTAuth = (req, _res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const unauthorizedMessage = 'Access token is required';
     if (!req.headers.authorization)
         return next(new _1.CustomError(unauthorizedMessage, 401));
@@ -69,7 +69,7 @@ const JWTAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     });
 });
 exports.JWTAuth = JWTAuth;
-const JWTRefresh = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const JWTRefresh = (req, _res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const unauthorizedMessage = 'Access token is required';
     if (!req.cookies.refreshToken)
         return next(new _1.CustomError(unauthorizedMessage, 401));

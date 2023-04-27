@@ -1,0 +1,11 @@
+{
+    "name": "darell",
+    "workspaces": [
+      "frontend",
+      "backend"
+    ],
+    "scripts": {
+        "build": "cd ./backend && npm install && npm run build && npm run db:migrate && cd ../frontend && npm install && npm run build"
+    }
+  }
+  

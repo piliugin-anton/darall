@@ -53,14 +53,14 @@ const app = (0, express_1.default)();
 const port = process.env.PORT;
 const frontendUpload = path_1.default.resolve('..', 'frontend', 'public', 'upload/');
 const storage = multer_1.default.diskStorage({
-    destination: (req, file, cb) => {
+    destination: (_req, _file, cb) => {
         cb(null, frontendUpload);
     },
-    filename: (req, file, cb) => {
+    filename: (_req, file, cb) => {
         cb(null, `${(0, uuidv7_1.uuidv7)()}.${file.mimetype.split('/')[1]}`);
     }
 });
-const fileFilter = (req, file, cb) => {
+const fileFilter = (_req, file, cb) => {
     if ((file.mimetype).includes('jpeg') || (file.mimetype).includes('png') || (file.mimetype).includes('jpg')) {
         cb(null, true);
     }
@@ -359,7 +359,21 @@ app.post('/user/login', (0, express_validator_1.body)('email').trim().isEmail(),
     res.json({ errors: result.array() });
 }));
 app.get('/user/me', jwt_1.JWTAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.json({ okay: 'AUTHORIZED!' });
+    const { id } = req.user;
+    try {
+        const user = yield prisma.user.findFirst({
+            where: {
+                id
+            }
+        });
+        if (!user)
+            return res.status(500).json({ errors: ['Ошибка при попытке найти пользователя'] });
+        const userWithoutPassword = exclude(user, ['password']);
+        return res.json(userWithoutPassword);
+    }
+    catch (ex) {
+        return res.status(500).json({ errors: [ex.message] });
+    }
 }));
 app.get('/user/getPrivileges', jwt_1.JWTAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.user;
@@ -399,7 +413,7 @@ app.get('/user/refresh', jwt_1.JWTRefresh, (req, res) => __awaiter(void 0, void 
         return res.status(500).json({ errors: [ex.message] });
     }
 }));
-app.use((err, req, res, next) => {
+app.use((err, _req, res, next) => {
     if (res.headersSent) {
         return next(err);
     }
