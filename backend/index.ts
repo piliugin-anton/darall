@@ -6,7 +6,7 @@ import multer from 'multer'
 import cors from 'cors'
 import { uuidv7 } from '@kripod/uuidv7'
 import dotenv from 'dotenv'
-import { Category, Item, PrismaClient, Role } from '@prisma/client'
+import { Category, Item, PrismaClient, Role, Prisma } from '@prisma/client'
 import path from 'path'
 import fs from 'fs'
 import { issueToken, JWTAuth, JWTRefresh, RefreshData, UserInfoRequest, UserWithoutPassword } from './jwt'
@@ -325,6 +325,9 @@ app.post('/user/signup',
 
                 return res.setHeader('Set-Cookie', serialized).json({ user: userWithoutPassword, token })
             } catch (ex: any) {
+                if (ex instanceof Prisma.PrismaClientKnownRequestError && ex.code === 'P2002') {
+                    return res.status(403).json({ errors: ['Пользователь с таким e-mail уже существует'] })
+                }
                 return res.status(500).json({ errors: [ex.message] })
             }
         }
