@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { Category, Item } from '../../../backend/node_modules/.prisma/client/index'
+import { Category, Item } from '../../../node_modules/.prisma/client/index'
 import * as API from '../api/index'
 
 export enum MODE {

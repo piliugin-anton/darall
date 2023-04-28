@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosResponse, isAxiosError, InternalAxiosRequestCon
 import mem from 'mem'
 import { useAuthStore } from '../store/auth'
 import { AuthState } from '../store/auth'
-import { Category, Item } from '../../../backend/node_modules/.prisma/client'
+import { Category, Item } from '../../../node_modules/.prisma/client'
 import type { FieldValidationError } from '../../../node_modules/express-validator'
 import { UserWithoutPassword } from '../../../backend/jwt'
 import { ExtendedCategory } from '../store/application'

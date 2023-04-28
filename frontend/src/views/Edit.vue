@@ -23,7 +23,7 @@ import ItemCard from '../components/ItemCard.vue'
 import FormButton from '../components/FormButton.vue'
 import useEdit from '../helpers/useEdit'
 import { useApplicationStore } from '../store'
-import { Item, Category } from '../../../backend/node_modules/.prisma/client/index'
+import { Item, Category } from '../../../node_modules/.prisma/client/index'
 
 const applicationStore = useApplicationStore()
 const data = useEdit()

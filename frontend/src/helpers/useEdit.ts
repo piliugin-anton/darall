@@ -4,7 +4,7 @@ import { useSnackbar } from 'vue3-snackbar'
 import { debounce } from '../helpers'
 import router, { useParams } from '../router'
 import { useApplicationStore } from '../store/application'
-import { Category, Item } from '../../../backend/node_modules/.prisma/client/index'
+import { Category, Item } from '../../../node_modules/.prisma/client/index'
 import { useModal } from 'vue-final-modal'
 import ModalConfirm from '../components/ModalConfirm.vue'
 

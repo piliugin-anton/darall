@@ -37,9 +37,8 @@ import { computed, unref } from 'vue'
 import { useRoute } from 'vue-router'
 import ItemCard from '../components/ItemCard.vue'
 import router from '../router'
-import { Category } from '../../../backend/node_modules/.prisma/client/index'
+import { Category, Item } from '../../../node_modules/.prisma/client/index'
 import { useApplicationStore, MODE, CartItem } from '../store'
-import { Item } from '../../../backend/node_modules/.prisma/client/index'
 import useEdit from '../helpers/useEdit'
 
 const applicationStore = useApplicationStore()
