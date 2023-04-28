@@ -309,6 +309,7 @@ app.post('/user/signup',
         if (result.isEmpty()) {
             const { email, name, password } = req.body
             try {
+                console.log('SIGNUP', req.url)
                 const hash = await argon2.hash(password)
                 const user = await prisma.user.create({
                     data: {
