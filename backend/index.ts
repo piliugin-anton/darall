@@ -1,4 +1,4 @@
-import express, { Express, NextFunction, Request, Response } from 'express'
+import express, { Express, NextFunction, Request, Response, Router } from 'express'
 import { param, body, validationResult } from 'express-validator'
 import cookieParser from 'cookie-parser'
 import * as argon2 from 'argon2'
@@ -14,6 +14,7 @@ import { issueToken, JWTAuth, JWTRefresh, RefreshData, UserInfoRequest, UserWith
 dotenv.config()
 
 const app: Express = express()
+const router: Router = express.Router()
 const port = process.env.PORT || 3000
 
 const frontendUpload = path.resolve('..', 'frontend', 'public', 'upload/')
@@ -57,6 +58,11 @@ app.use(cookieParser())
 app.use(cors({ origin: true, credentials: true }))
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
+app.use((err: CustomError | unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent) {
+        return next(err)
+    } else if (err instanceof CustomError) res.status(err.status).json({ errors: [err.message] })
+})
 
 const prisma = new PrismaClient()
 
@@ -69,7 +75,7 @@ export class CustomError extends Error {
     }
 }
 
-app.get('/categories', async (req: Request, res: Response) => {
+router.get('/categories', async (req: Request, res: Response) => {
     const skipNumber = parseInt(req.query.skip as string, 10)
     const skip = isFinite(skipNumber) && skipNumber > 0 ? skipNumber : 0
 
@@ -88,7 +94,7 @@ app.get('/categories', async (req: Request, res: Response) => {
     }
 })
 
-app.get('/categories/:id', param('id').isInt({ min: 1 }).toInt(), async (req: Request, res: Response) => {
+router.get('/categories/:id', param('id').isInt({ min: 1 }).toInt(), async (req: Request, res: Response) => {
     const result = validationResult(req)
     if (result.isEmpty()) {
         try {
@@ -114,7 +120,7 @@ type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
 type CategoryCreate = Optional<Category, 'id'>
 type CategoryUpdate = Optional<CategoryCreate, 'image'>
 
-app.post('/categories', JWTAuth, categoryMiddleware, body('title').trim().notEmpty(), async (req: Request, res: Response) => {
+router.post('/categories', JWTAuth, categoryMiddleware, body('title').trim().notEmpty(), async (req: Request, res: Response) => {
     const result = validationResult(req)
     if (result.isEmpty()) {
         if (!(req.files && 'image' in req.files && req.files.image.length)) {
@@ -138,7 +144,7 @@ app.post('/categories', JWTAuth, categoryMiddleware, body('title').trim().notEmp
     res.status(400).json({ errors: result.array() })
 })
 
-app.put('/categories/:id', JWTAuth, categoryMiddleware, param('id').toInt().isInt({ min: 1 }), body('title').trim().notEmpty(), async (req: Request, res: Response) => {
+router.put('/categories/:id', JWTAuth, categoryMiddleware, param('id').toInt().isInt({ min: 1 }), body('title').trim().notEmpty(), async (req: Request, res: Response) => {
     const result = validationResult(req)
     if (result.isEmpty()) {
         const id = req.params.id as unknown as number
@@ -177,7 +183,7 @@ app.put('/categories/:id', JWTAuth, categoryMiddleware, param('id').toInt().isIn
     res.status(400).json({ errors: result.array() })
 })
 
-app.delete('/categories/:id', JWTAuth, param('id').toInt().isInt({ min: 1 }), async (req: Request, res: Response) => {
+router.delete('/categories/:id', JWTAuth, param('id').toInt().isInt({ min: 1 }), async (req: Request, res: Response) => {
     const result = validationResult(req)
     if (result.isEmpty()) {
         const id = req.params.id as unknown as number
@@ -205,7 +211,7 @@ app.delete('/categories/:id', JWTAuth, param('id').toInt().isInt({ min: 1 }), as
 type ItemCreate = Optional<Item, 'id'>
 type ItemUpdate = Optional<ItemCreate, 'categoryId' | 'image'>
 
-app.post('/items', JWTAuth, itemMiddleware,
+router.post('/items', JWTAuth, itemMiddleware,
     body('title').trim().notEmpty(),
     body('description').trim().notEmpty(),
     body('categoryId').toInt().isInt({ min: 1 }),
@@ -236,7 +242,7 @@ app.post('/items', JWTAuth, itemMiddleware,
         res.status(400).json({ errors: result.array() })
 })
 
-app.put('/items/:id', JWTAuth, itemMiddleware, 
+router.put('/items/:id', JWTAuth, itemMiddleware, 
     param('id').toInt().isInt({ min: 1 }),
     body('title').trim().notEmpty(),
     body('description').trim().notEmpty(),
@@ -281,7 +287,7 @@ app.put('/items/:id', JWTAuth, itemMiddleware,
     res.status(400).json({ errors: result.array() })
 })
 
-app.delete('/items/:id', JWTAuth, param('id').toInt().isInt({ min: 1 }), async (req: Request, res: Response) => {
+router.delete('/items/:id', JWTAuth, param('id').toInt().isInt({ min: 1 }), async (req: Request, res: Response) => {
     const result = validationResult(req)
     if (result.isEmpty()) {
         const id = req.params.id as unknown as number
@@ -301,7 +307,7 @@ app.delete('/items/:id', JWTAuth, param('id').toInt().isInt({ min: 1 }), async (
     res.status(400).json({ errors: result.array() })
 })
 
-app.post('/user/signup',
+router.post('/user/signup',
     body('email').trim().isEmail(),
     body('name').trim().notEmpty(),
     body('password').notEmpty(), async (req: Request, res: Response) => {
@@ -335,7 +341,7 @@ app.post('/user/signup',
         res.json({ errors: result.array() })
 })
 
-app.post('/user/login',
+router.post('/user/login',
     body('email').trim().isEmail(),
     body('password').notEmpty(), async (req: Request, res: Response) => {
         const result = validationResult(req)
@@ -367,7 +373,7 @@ app.post('/user/login',
         res.json({ errors: result.array() })
 })
 
-app.get('/user/me', JWTAuth, async (req: UserInfoRequest<UserWithoutPassword>, res: Response) => {
+router.get('/user/me', JWTAuth, async (req: UserInfoRequest<UserWithoutPassword>, res: Response) => {
     const { id } = req.user as UserWithoutPassword
 
     try {
@@ -386,7 +392,7 @@ app.get('/user/me', JWTAuth, async (req: UserInfoRequest<UserWithoutPassword>, r
     }
 })
 
-app.get('/user/getPrivileges', JWTAuth, async (req: UserInfoRequest<UserWithoutPassword>, res: Response) => {
+router.get('/user/getPrivileges', JWTAuth, async (req: UserInfoRequest<UserWithoutPassword>, res: Response) => {
     const { id } = req.user as UserWithoutPassword
 
     try {
@@ -408,7 +414,7 @@ app.get('/user/getPrivileges', JWTAuth, async (req: UserInfoRequest<UserWithoutP
     }
 })
 
-app.get('/user/refresh', JWTRefresh, async (req: UserInfoRequest<RefreshData>, res: Response) => {
+router.get('/user/refresh', JWTRefresh, async (req: UserInfoRequest<RefreshData>, res: Response) => {
     const { id } = req.user as RefreshData
     try {
         const user = await prisma.user.findFirst({
@@ -426,11 +432,7 @@ app.get('/user/refresh', JWTRefresh, async (req: UserInfoRequest<RefreshData>, r
     }    
 })
 
-app.use((err: CustomError | unknown, _req: Request, res: Response, next: NextFunction) => {
-    if (res.headersSent) {
-        return next(err)
-    } else if (err instanceof CustomError) res.status(err.status).json({ errors: [err.message] })
-})
+app.use(router)
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
