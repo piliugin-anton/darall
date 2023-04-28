@@ -338,7 +338,7 @@ router.post('/user/signup',
             }
         }
 
-        res.json({ errors: result.array() })
+        res.status(400).json({ errors: result.array() })
 })
 
 router.post('/user/login',
@@ -370,7 +370,7 @@ router.post('/user/login',
             }
         }
 
-        res.json({ errors: result.array() })
+        res.status(400).json({ errors: result.array() })
 })
 
 router.get('/user/me', JWTAuth, async (req: UserInfoRequest<UserWithoutPassword>, res: Response) => {
