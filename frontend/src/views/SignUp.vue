@@ -37,18 +37,31 @@ const rules = {
 
 const v$ = useVuelidate(rules, state)
 
+const onError = () => snackbar.add({
+    type: 'error',
+    text: 'Ошибка при регистрации'
+})
+
+const onSuccess = () => snackbar.add({
+    type: 'success',
+    text: 'Регистрация прошла успешно!'
+})
+
 async function handleSubmit() {
     const auth = useAuthStore()
     
     try {
-        await auth.signup(state)
-        const to = route.query.redirect as string || { name: 'Home' }
-        router.push(to)
+        const result = await auth.signup(state)
+        if (!('errors' in result)) {
+            onSuccess()
+            const to = route.query.redirect as string || { name: 'Home' }
+            router.push(to)
+        } else {
+            onError()
+            console.log(result.errors)
+        }
     } catch (ex: any) {
-        snackbar.add({
-            type: 'error',
-            text: 'Ошибка при регистрации'
-        })
+        onError()
         console.log(ex.message)
     }
 }

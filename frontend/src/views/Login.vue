@@ -34,6 +34,16 @@ const rules = {
   password: { required }
 }
 
+const onError = () => snackbar.add({
+    type: 'error',
+    text: 'Ошибка при попытке входа'
+})
+
+const onSuccess = () => snackbar.add({
+    type: 'info',
+    text: 'Авторизация прошла успешно'
+})
+
 const v$ = useVuelidate(rules, state)
 
 async function handleSubmit() {
@@ -42,9 +52,12 @@ async function handleSubmit() {
     try {
         const result = await auth.login({ email: state.email, password: state.password })
         if (!('errors' in result)) {
+            onSuccess()
             const to = route.query.redirect as string || { name: 'Home' }
             router.push(to)
         } else {
+            console.log(result.errors)
+            onError()
             loginErrors.value = errorsList(result.errors)
         }
     } catch (ex: any) {
