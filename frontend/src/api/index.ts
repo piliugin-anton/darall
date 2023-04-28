@@ -7,7 +7,7 @@ import { FieldValidationError } from '../../../backend/node_modules/express-vali
 import { UserWithoutPassword } from '../../../backend/jwt'
 import { ExtendedCategory } from '../store/application'
 
-const baseURL = process.env.BASE_URL || 'http://localhost:3000'
+const baseURL = process.env.API_BASE_URL || 'http://localhost:3000'
 
 export interface SignupForm {
     email: string
