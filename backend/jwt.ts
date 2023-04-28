@@ -18,7 +18,10 @@ export type UserInfoRequest<T = UserWithoutPassword> = Request & { user?: T }
 export const signToken = (payload: unknown, expiresIn = '1800s'): Promise<string> => {
     return new Promise((resolve, reject) => {
         jwt.sign({ payload }, accessTokenSecret, { algorithm: 'HS512', expiresIn }, (err: Error | null, token: string | undefined) => {
-            if (err) return reject(new CustomError('Error while trying to sign a JWT token', 500))
+            if (err) {
+                console.log('JWT ERROR', err)
+                return reject(new CustomError('Ошибка при попытке подписать JWT', 500))
+            }
 
             resolve(token as string)
         })
