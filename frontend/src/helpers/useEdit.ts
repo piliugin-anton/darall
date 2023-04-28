@@ -31,8 +31,8 @@ export default function useEdit(options: EditOptions = {}) {
 
     const state = reactive<EditState>({
         title: data?.title || NO_TITLE,
-        description: data && 'description' in data && data.description ? data.description : NO_DESCRIPTION,
-        price: data && 'price' in data && data.price ? data.price : undefined,
+        description: data && 'description' in data && data.description !== undefined ? data.description : NO_DESCRIPTION,
+        price: data && 'price' in data && data.price !== undefined ? data.price : undefined,
         image: data?.image ? `/upload/${data.image}` : '',
         imageFile: null,
         created: !!data?.id
