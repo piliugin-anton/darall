@@ -61,10 +61,7 @@ async function handleSubmit() {
             loginErrors.value = errorsList(result.errors)
         }
     } catch (ex: any) {
-        snackbar.add({
-            type: 'error',
-            text: 'Ошибка при попытке входа'
-        })
+        onError()
         console.log(ex.message)
     }
 }
