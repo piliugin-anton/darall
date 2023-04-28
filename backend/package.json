@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
+    "dev": "concurrently \"tsc --watch\" \"nodemon -q dist/index.js\"",
     "db:reset": "prisma migrate reset --force && prisma migrate deploy",
     "db:migrate": "prisma migrate dev",
     "db:sync": "prisma db push"
