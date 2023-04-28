@@ -3,7 +3,7 @@ import mem from 'mem'
 import { useAuthStore } from '../store/auth'
 import { AuthState } from '../store/auth'
 import { Category, Item } from '../../../backend/node_modules/.prisma/client'
-import { FieldValidationError } from '../../../backend/node_modules/express-validator'
+import type { FieldValidationError } from '../../../node_modules/express-validator'
 import { UserWithoutPassword } from '../../../backend/jwt'
 import { ExtendedCategory } from '../store/application'
 

@@ -19,7 +19,7 @@ import { useAuthStore } from '../store'
 import { errorsList } from '../helpers'
 import FormInput from '../components/FormInput.vue'
 import FormButton from '../components/FormButton.vue'
-import { FieldValidationError } from '../../../backend/node_modules/express-validator'
+import type { FieldValidationError } from '../../../node_modules/express-validator'
 
 const loginErrors = ref<string[] | FieldValidationError[]>([])
 const route = useRoute()
