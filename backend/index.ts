@@ -20,7 +20,7 @@ const port = process.env.PORT || 3000
 const REMOTE_UPLOAD = true
 
 const uploadClient = new UploadClient({ publicKey: '1860953c55123fdaa48d', store: true })
-uploadClient.uploadFile()
+//uploadClient.uploadFile()
 
 const frontendUpload = path.resolve('..', 'frontend', 'public', 'upload/')
 const storage = multer.diskStorage({
