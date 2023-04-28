@@ -7,6 +7,7 @@ import cors from 'cors'
 import { uuidv7 } from '@kripod/uuidv7'
 import dotenv from 'dotenv'
 import { Category, Item, PrismaClient, Role, Prisma } from '@prisma/client'
+import { UploadClient } from '@uploadcare/upload-client'
 import path from 'path'
 import fs from 'fs'
 import { issueToken, JWTAuth, JWTRefresh, RefreshData, UserInfoRequest, UserWithoutPassword } from './jwt'
@@ -16,6 +17,10 @@ dotenv.config()
 const app: Express = express()
 const router: Router = express.Router()
 const port = process.env.PORT || 3000
+const REMOTE_UPLOAD = true
+
+const uploadClient = new UploadClient({ publicKey: '1860953c55123fdaa48d', store: true })
+uploadClient.uploadFile()
 
 const frontendUpload = path.resolve('..', 'frontend', 'public', 'upload/')
 const storage = multer.diskStorage({
@@ -58,11 +63,6 @@ app.use(cookieParser())
 app.use(cors({ origin: true, credentials: true }))
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
-app.use((err: CustomError | unknown, _req: Request, res: Response, next: NextFunction) => {
-    if (res.headersSent) {
-        return next(err)
-    } else if (err instanceof CustomError) res.status(err.status).json({ errors: [err.message] })
-})
 
 const prisma = new PrismaClient()
 
@@ -433,6 +433,13 @@ router.get('/user/refresh', JWTRefresh, async (req: UserInfoRequest<RefreshData>
 })
 
 app.use(router)
+
+// Обязательно добавлять middleware для обработки ошибок последним!
+app.use((err: CustomError | unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent) {
+        return next(err)
+    } else if (err instanceof CustomError) res.status(err.status).json({ errors: [err.message] })
+})
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
