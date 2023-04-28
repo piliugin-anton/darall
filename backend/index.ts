@@ -17,9 +17,9 @@ dotenv.config()
 const app: Express = express()
 const router: Router = express.Router()
 const port = process.env.PORT || 3000
-const REMOTE_UPLOAD = true
+//const REMOTE_UPLOAD = true
 
-const uploadClient = new UploadClient({ publicKey: '1860953c55123fdaa48d', store: true })
+//const uploadClient = new UploadClient({ publicKey: '1860953c55123fdaa48d', store: true })
 //uploadClient.uploadFile()
 
 const frontendUpload = path.resolve('..', 'frontend', 'public', 'upload/')
