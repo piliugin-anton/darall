@@ -1,4 +1,4 @@
-import type { FieldValidationError } from '../../../backend/node_modules/express-validator'
+import type { FieldValidationError } from '../../../node_modules/express-validator'
 
 export function debounce(this: Function | void, func: Function, timeout = 300): Function {
     let timer: any
