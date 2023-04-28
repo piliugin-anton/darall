@@ -14,7 +14,7 @@ import { issueToken, JWTAuth, JWTRefresh, RefreshData, UserInfoRequest, UserWith
 dotenv.config()
 
 const app: Express = express()
-const port = process.env.PORT
+const port = process.env.PORT || 3000
 
 const frontendUpload = path.resolve('..', 'frontend', 'public', 'upload/')
 const storage = multer.diskStorage({
