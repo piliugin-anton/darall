@@ -119,25 +119,18 @@ export default function useEdit(options: EditOptions = {}) {
         }
     }
 
-    const changesSaved = () => snackbar.add({
+    const snackbarSuccess = (text: string) => snackbar.add({
         type: 'info',
-        text: 'Изменения сохранены!'
+        text
     })
 
-    const changesNotSaved = () => snackbar.add({
+    const snackbarError = (text: string) => snackbar.add({
         type: 'error',
-        text: 'Ошибка при сохранении изменений!'
+        text
     })
 
-    const itemAddedToCart = () => snackbar.add({
-        type: 'info',
-        text: 'Товар добавлен в корзину'
-    })
-
-    const itemNotAddedToCart = () => snackbar.add({
-        type: 'error',
-        text: 'Ошибка при добавлении товара в корзину!'
-    })
+    const changesSaved = () => snackbarSuccess('Изменения сохранены!')
+    const changesNotSaved = () => snackbarError('Ошибка при сохранении изменений!')
 
     function resetState() {
         state.title = NO_TITLE
@@ -236,11 +229,11 @@ export default function useEdit(options: EditOptions = {}) {
     function handleQtyChange(change: number) {
         if (!ID.value) return
 
-        const isAdded = application.qtyChange(ID.value, change)
-        if (isAdded) {
-            itemAddedToCart()
+        const success = application.qtyChange(ID.value, change)
+        if (success) {
+            snackbarSuccess(change > 0 ? 'Позиция успешно добавлена в корзину' : 'Позиция успешно удалена из корзины')
         } else {
-            itemNotAddedToCart()
+            snackbarError(change > 0 ? 'Ошибка при добавлении в корзину' : 'Ошибка при удалении из корзины')
         }
         
     }
