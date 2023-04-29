@@ -2,16 +2,14 @@ import { Request } from 'express'
 import { StorageEngine } from 'multer'
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary'
 
-// Не забыть добавить переменную окружения CLOUDINARY_URL=cloudinary://my_key:my_secret@my_cloud_name
+// Не забыть добавить переменную окружения (CLOUDINARY_URL=cloudinary://my_key:my_secret@my_cloud_name) ИЛИ настроки ниже: 
 
-/*
 cloudinary.config({ 
-  cloud_name: 'sample', 
-  api_key: '874837483274837', 
-  api_secret: 'a676b67565c6767a6767d6767f676fe1',
+  cloud_name: 'daral0kea', 
+  api_key: '464918157125713', 
+  api_secret: 'IcBtcImq8P8qGbASkhnnFaXJTsU',
   secure: true
 })
-*/
 
 function CloudinaryStorage(this: any): void {
   
