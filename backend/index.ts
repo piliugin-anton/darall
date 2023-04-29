@@ -6,7 +6,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import { Category, Item, PrismaClient, Role, Prisma } from '@prisma/client'
 import { issueToken, JWTAuth, JWTRefresh, RefreshData, UserInfoRequest, UserWithoutPassword } from './jwt'
-import { imageDelete, categoryMiddleware, itemMiddleware } from './fileUpload'
+import { imageDelete, categoryMiddleware, itemMiddleware } from './imageUpload'
 
 dotenv.config()
 

@@ -23,7 +23,7 @@ CloudinaryStorage.prototype._handleFile = function _handleFile(_req: Request, fi
 
     const imageData = image as UploadApiResponse
     cb(null, {
-      filename: imageData.url,
+      filename: imageData.secure_url,
       path: imageData.public_id,
       size: imageData.bytes
     })
