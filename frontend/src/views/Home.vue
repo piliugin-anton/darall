@@ -19,7 +19,7 @@
                     <div class="categories__container__content">
                         <h1>Категории</h1>
                         <div class="categories__container__content__list">
-                            <ItemCard v-for="data in computedCategories" :key="`category-${data.categoryId.value}`" :title="data.state.title" :image="data.state.image" :editable="applicationStore.mode === MODE.Редактирование" :created="data.state.created" @focus="data.handleFocus" @blur="data.handleBlur" @input="data.handleInput" @imageChange="data.handleImageChange" @click="handleClick" @delete="data.handleDelete" />
+                            <ItemCard v-for="data in computedCategories" :key="`category-${data.categoryId.value}`" :title="data.state.title" :image="data.state.image" :editable="applicationStore.mode === MODE.Редактирование" :created="data.state.created" @focus="data.handleFocus" @blur="data.handleBlur" @input="data.handleInput" @imageChange="data.handleImageChange" @click="() => handleClick(data.categoryId.value)" @delete="data.handleDelete" />
                         </div>
                     </div>
                 </template>
@@ -59,10 +59,10 @@ const computedItems = computed(() => {
     })
 })
 
-function handleClick() {
-    if (applicationStore.mode !== MODE.Просмотр || !route.params.category) return
+function handleClick(id: string | number | null) {
+    if (applicationStore.mode !== MODE.Просмотр || !id) return
 
-    router.push({ name: 'Home', query: { category: route.params.category } })
+    router.push({ name: 'Home', query: { category: id } })
 }
 </script>
 

@@ -43,7 +43,7 @@ export default function useEdit(options: EditOptions = {}) {
     const snackbar = useSnackbar()
     const route = useRoute()
     const routeParams = useParams()
-    const categoryId = ref(!isItem && data?.id || route.query.category || null)
+    const categoryId = ref<string | number | null>(!isItem && data?.id || route.query.category as string || null)
     const functions = {
         category: {
             create: application.createCategory,
