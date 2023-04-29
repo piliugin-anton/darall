@@ -4,12 +4,12 @@ import { v2 as cloudinary, UploadApiResponse } from 'cloudinary'
 
 // Не забыть добавить переменную окружения (CLOUDINARY_URL=cloudinary://my_key:my_secret@my_cloud_name) ИЛИ настроки ниже: 
 
-cloudinary.config({ 
-  cloud_name: 'daral0kea', 
-  api_key: '464918157125713', 
-  api_secret: 'IcBtcImq8P8qGbASkhnnFaXJTsU',
+/*cloudinary.config({ 
+  cloud_name: 'name', 
+  api_key: 'key', 
+  api_secret: 'secret',
   secure: true
-})
+})*/
 
 function CloudinaryStorage(this: any): void {
 
