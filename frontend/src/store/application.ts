@@ -127,15 +127,18 @@ export const useApplicationStore = defineStore('application', {
 
       return result
     },
-    addToCart(id: number) {
+    qtyChange(id: number, change: number) {
       const inCart = this.cart.find((cartItem: CartItem) => cartItem.id === id)
 
-      if (inCart) inCart.quantity = inCart.quantity + 1
-    },
-    removeFromCart(id: number) {
-      const inCart = this.cart.find((cartItem: CartItem) => cartItem.id === id)
+      if (!inCart) return false
 
-      if (inCart && inCart.quantity > 0) inCart.quantity = inCart.quantity - 1
+      if (change > 0) {
+        inCart.quantity = inCart.quantity + 1
+      } else {
+        inCart.quantity = inCart.quantity - 1
+      }
+
+      return true
     }
   }
 })

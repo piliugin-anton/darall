@@ -129,6 +129,16 @@ export default function useEdit(options: EditOptions = {}) {
         text: 'Ошибка при сохранении изменений!'
     })
 
+    const itemAddedToCart = () => snackbar.add({
+        type: 'info',
+        text: 'Товар добавлен в корзину'
+    })
+
+    const itemNotAddedToCart = () => snackbar.add({
+        type: 'error',
+        text: 'Ошибка при добавлении товара в корзину!'
+    })
+
     function resetState() {
         state.title = NO_TITLE
         state.description = NO_DESCRIPTION
@@ -223,6 +233,16 @@ export default function useEdit(options: EditOptions = {}) {
 
     const handleInput = (...args: any[]) => (!state.created && !state.imageFile) || (state.created && !categoryId.value) ? directInput(...args) : debounceInput(...args)
 
+    function handleQtyChange(change: number) {
+        const isAdded = application.qtyChange(Number(ID), change)
+
+        if (isAdded) {
+            itemAddedToCart()
+        } else {
+            itemNotAddedToCart()
+        }
+    }
+
     async function fetchCategory() {
         if (!categoryId.value) return
 
@@ -261,6 +281,7 @@ export default function useEdit(options: EditOptions = {}) {
         handleBlur,
         handleImageChange,
         handleInput,
-        handleDelete
+        handleDelete,
+        handleQtyChange
     }
 }

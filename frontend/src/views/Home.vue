@@ -6,7 +6,7 @@
                     <div class="categories__container__content">
                         <h1>Категория <span class="categories__container__content__text">{{ selectedCategory.title }}</span></h1>
                         <div class="categories__container__content__list">
-                            <ItemCard v-for="(item, index) in computedItems" :key="`item-${index}`" class="edit__container__items__item" :title="item.state.title" :description="item.state.description" :price="item.state.price" :quantity="item.quantity" :image="item.state.image" :editable="applicationStore.mode === MODE.Редактирование" :created="item.state.created" @focus="item.handleFocus" @blur="item.handleBlur" @input="item.handleInput" @imageChange="item.handleImageChange" @delete="item.handleDelete" />
+                            <ItemCard v-for="(item, index) in computedItems" :key="`item-${index}`" class="edit__container__items__item" :title="item.state.title" :description="item.state.description" :price="item.state.price" :quantity="item.quantity" :image="item.state.image" :editable="applicationStore.mode === MODE.Редактирование" :created="item.state.created" @focus="item.handleFocus" @blur="item.handleBlur" @input="item.handleInput" @imageChange="item.handleImageChange" @delete="item.handleDelete" @qtyChange="item.handleQtyChange" />
                         </div>
                     </div> 
                 </template>
