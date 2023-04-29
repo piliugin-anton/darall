@@ -127,18 +127,34 @@ export const useApplicationStore = defineStore('application', {
 
       return result
     },
-    qtyChange(id: number, change: number) {
-      const inCart = this.cart.find((cartItem: CartItem) => cartItem.id === id)
+    qtyChange(id: number | string, change: number) {
+      const idNumber = Number(id)
+      let item = this.cart.find((cartItem: CartItem) => cartItem.id === idNumber)
 
-      if (!inCart) return false
+      if (item) {
+        if (change > 0) {
+          item.quantity = item.quantity + 1
+        } else if (item.quantity > 0) {
+          item.quantity = item.quantity - 1
+        }
 
-      if (change > 0) {
-        inCart.quantity = inCart.quantity + 1
-      } else {
-        inCart.quantity = inCart.quantity - 1
+        return true
+      }
+      
+
+      if (!item && change > 0) {
+        for (let i = 0; i < this.categories.length; i++) {
+          const category = this.categories[i] as ExtendedCategory
+          for (let j = 0; j < category.items.length; j++) {
+            if (category.items[j].id === idNumber) {
+              this.cart.push({ id: category.items[j].id as number, quantity: 1 })
+              return true
+            }
+          }
+        }
       }
 
-      return true
+      return false
     }
   }
 })

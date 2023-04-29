@@ -234,13 +234,15 @@ export default function useEdit(options: EditOptions = {}) {
     const handleInput = (...args: any[]) => (!state.created && !state.imageFile) || (state.created && !categoryId.value) ? directInput(...args) : debounceInput(...args)
 
     function handleQtyChange(change: number) {
-        const isAdded = application.qtyChange(Number(ID), change)
+        if (!ID.value) return
 
+        const isAdded = application.qtyChange(ID.value, change)
         if (isAdded) {
             itemAddedToCart()
         } else {
             itemNotAddedToCart()
         }
+        
     }
 
     async function fetchCategory() {
