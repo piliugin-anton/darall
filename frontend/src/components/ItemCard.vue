@@ -1,5 +1,5 @@
 <template>
-  <article class="item" :class="{ clickable: !editable, 'no-hover': isItem }" @click.prevent="!editable && emit('click', $event)">
+  <article class="item" :class="{ clickable: !editable, 'no-hover': isItem }" @click="!editable && emit('click', $event)">
     <div class="item__image" :style="`background-image: url('${image}')`">
       <label v-if="editable" class="item__image__label" :class="{ 'with-image' : image }">
         <input class="item__image__file" type="file" @change="$emit('imageChange', ($event.target as HTMLInputElement & EventTarget).files)" accept=".jpg, .jpeg, .png" />
@@ -12,11 +12,11 @@
       <div>&nbsp;&#8381;</div>
     </div>
     <div v-if="!editable && quantity !== undefined" class="item__controls">
-      <button type="button" class="item__controls__button" :disabled="quantity < 1" @click.prevent="$emit('qtyChange', -1)">-</button>
+      <button type="button" class="item__controls__button" :disabled="quantity < 1" @click.stop="$emit('qtyChange', -1)">-</button>
       <span class="item__controls__qty">{{ quantity }}</span>
-      <button type="button" class="item__controls__button" @click.prevent="$emit('qtyChange', 1)">+</button>
+      <button type="button" class="item__controls__button" @click.stop="$emit('qtyChange', 1)">+</button>
     </div>
-    <button v-if="editable && created" class="item__remove" @click.prevent="emit('delete')">X</button>
+    <button v-if="editable && created" class="item__remove" @click.stop="emit('delete')">X</button>
   </article>
 </template>
 
