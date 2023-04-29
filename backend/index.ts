@@ -33,7 +33,7 @@ prisma.$use(async (params, next) => {
     const result = await next(params)
 
     if ((params.model == 'Category' || params.model == 'Item') && result.image) {
-        result.image = await imageGet(result)
+        result.image = await imageGet(result.image)
     }
   
     return result
