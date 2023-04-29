@@ -2,55 +2,17 @@ import express, { Express, NextFunction, Request, Response, Router } from 'expre
 import { param, body, validationResult } from 'express-validator'
 import cookieParser from 'cookie-parser'
 import * as argon2 from 'argon2'
-import multer from 'multer'
 import cors from 'cors'
-import { uuidv7 } from '@kripod/uuidv7'
 import dotenv from 'dotenv'
 import { Category, Item, PrismaClient, Role, Prisma } from '@prisma/client'
-//import { UploadClient } from '@uploadcare/upload-client'
-import path from 'path'
-import fs from 'fs'
 import { issueToken, JWTAuth, JWTRefresh, RefreshData, UserInfoRequest, UserWithoutPassword } from './jwt'
+import { imageDelete, categoryMiddleware, itemMiddleware } from './fileUpload'
 
 dotenv.config()
 
 const app: Express = express()
 const router: Router = express.Router()
 const port = process.env.PORT || 3000
-//const REMOTE_UPLOAD = true
-
-//const uploadClient = new UploadClient({ publicKey: '1860953c55123fdaa48d', store: true })
-//uploadClient.uploadFile()
-
-const frontendUpload = path.resolve('..', 'frontend', 'public', 'upload/')
-const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => {
-        cb(null, frontendUpload)
-    },
-    filename: (_req, file, cb) => {
-        cb(null, `${uuidv7()}.${file.mimetype.split('/')[1]}`)
-    }
-})
-const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
-    if ((file.mimetype).includes('jpeg') || (file.mimetype).includes('png') || (file.mimetype).includes('jpg')) {
-        cb(null, true)
-    } else {
-        cb(null, false)
-    }
-}
-const upload = multer({ storage, fileFilter })
-const categoryMiddleware = upload.fields([
-    { name: 'image', maxCount: 1 },
-    { name: 'title', maxCount: 1 }
-])
-const itemMiddleware = upload.fields([
-    { name: 'image', maxCount: 1 },
-    { name: 'title', maxCount: 1 },
-    { name: 'description', maxCount: 1 },
-    { name: 'price', maxCount: 1 }
-])
-
-const imageDelete = (image: string) => fs.unlinkSync(path.join(frontendUpload, image))
 
 function exclude<User, Key extends keyof User>(user: User, keys: Key[]): Omit<User, Key> {
     for (let key of keys) {
