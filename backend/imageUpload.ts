@@ -2,7 +2,7 @@ import { uuidv7 } from '@kripod/uuidv7'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
-import CloudinaryStorage, { cloudImageDelete } from './CloudinaryStorage'
+import CloudinaryStorage, { cloudImageDelete, cloudImageGet } from './CloudinaryStorage'
 
 const STORE_TO_CLOUD = true
 
@@ -36,3 +36,4 @@ export const itemMiddleware = upload.fields([
 ])
 
 export const imageDelete = (image: string) => STORE_TO_CLOUD ? cloudImageDelete(image) : fs.unlinkSync(path.join(frontendUpload, image))
+export const imageGet = (image: string) => STORE_TO_CLOUD ? cloudImageGet(image) : image

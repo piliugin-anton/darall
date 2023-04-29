@@ -6,7 +6,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import { Category, Item, PrismaClient, Role, Prisma } from '@prisma/client'
 import { issueToken, JWTAuth, JWTRefresh, RefreshData, UserInfoRequest, UserWithoutPassword } from './jwt'
-import { imageDelete, categoryMiddleware, itemMiddleware } from './imageUpload'
+import { imageDelete, imageGet, categoryMiddleware, itemMiddleware } from './imageUpload'
 
 dotenv.config()
 
@@ -27,6 +27,15 @@ app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
 const prisma = new PrismaClient()
+
+
+prisma.$use(async (params, next) => {
+    if ((params.model == 'Category' || params.model == 'Item') && params.args.data.image) {
+        params.args.data.image = await imageGet(params.args.data.image)
+    }
+  
+    return next(params)
+  })
 
 export class CustomError extends Error {
     status: number

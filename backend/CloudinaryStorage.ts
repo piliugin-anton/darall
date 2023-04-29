@@ -16,6 +16,7 @@ function CloudinaryStorage(this: any): void {
 }
 
 export const cloudImageDelete = (image: string, cb?: (error: Error | null) => void) => cloudinary.uploader.destroy(image, { resource_type: 'image', invalidate: true }).then(() => cb && cb(null)).catch((err) => cb && cb(err))
+export const cloudImageGet = (publicId: string) => cloudinary.api.resources_by_ids([publicId]).then((result) => result.resources[0].secure_url)
 
 CloudinaryStorage.prototype._handleFile = function _handleFile(_req: Request, file: Express.Multer.File, cb: (error?: any, info?: Partial<Express.Multer.File>) => void) {
   const uploadStream = cloudinary.uploader.upload_stream({ tags: 'images' }, function(err, image) {
@@ -23,8 +24,8 @@ CloudinaryStorage.prototype._handleFile = function _handleFile(_req: Request, fi
 
     const imageData = image as UploadApiResponse
     cb(null, {
-      filename: imageData.secure_url,
-      path: imageData.public_id,
+      filename: imageData.public_id,
+      path: imageData.secure_url,
       size: imageData.bytes
     })
   })
