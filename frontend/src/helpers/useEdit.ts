@@ -33,7 +33,7 @@ export default function useEdit(options: EditOptions = {}) {
         title: data?.title || NO_TITLE,
         description: data && 'description' in data && data.description !== undefined ? data.description : NO_DESCRIPTION,
         price: data && 'price' in data && data.price !== undefined ? data.price : undefined,
-        image: data?.image ? `/upload/${data.image}` : '',
+        image: data?.image ? data.image : '',
         imageFile: null,
         created: !!data?.id
     })
@@ -235,7 +235,7 @@ export default function useEdit(options: EditOptions = {}) {
                 })
                 categoryId.value = null
             } else {
-                state.image = `/upload/${category.image}`
+                state.image = category.image
                 state.title = category.title
                 state.created = true
             }
