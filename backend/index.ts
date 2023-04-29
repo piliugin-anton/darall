@@ -30,12 +30,12 @@ const prisma = new PrismaClient()
 
 
 prisma.$use(async (params, next) => {
-    if ((params.model == 'Category' || params.model == 'Item') && params.args.data.image) {
+    if ((params.model == 'Category' || params.model == 'Item') && params.args?.data?.image) {
         params.args.data.image = await imageGet(params.args.data.image)
     }
   
     return next(params)
-  })
+})
 
 export class CustomError extends Error {
     status: number
