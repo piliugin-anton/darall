@@ -62,6 +62,7 @@
 <style scoped lang="scss">
 .item {
   display: flex;
+  flex-direction: column;
   position: relative;
   border: 2px solid $primary;
   border-radius: 16px;
