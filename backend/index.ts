@@ -28,7 +28,6 @@ app.use(express.json())
 
 const prisma = new PrismaClient()
 
-
 prisma.$use(async (params, next) => {
     const result = await next(params)
 
