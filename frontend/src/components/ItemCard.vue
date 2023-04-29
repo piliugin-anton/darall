@@ -61,6 +61,7 @@
 
 <style scoped lang="scss">
 .item {
+  display: flex;
   position: relative;
   border: 2px solid $primary;
   border-radius: 16px;
@@ -159,6 +160,7 @@
   }
 
   &__description {
+    flex: 1 0;
     padding: 8px 16px;
     background-color: $primary;
 
