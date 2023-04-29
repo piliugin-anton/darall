@@ -1,6 +1,7 @@
 import { Request } from 'express'
 import { StorageEngine } from 'multer'
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary'
+import path from 'path'
 
 // Не забыть добавить переменную окружения (CLOUDINARY_URL=cloudinary://my_key:my_secret@my_cloud_name) ИЛИ настроки ниже: 
 
@@ -15,8 +16,7 @@ function CloudinaryStorage(this: any): void {
 
 }
 
-export const cloudImageDelete = (image: string, cb?: (error: Error | null) => void) => cloudinary.uploader.destroy(image, { resource_type: 'image', invalidate: true }).then(() => cb && cb(null)).catch((err) => cb && cb(err))
-export const cloudImageGet = (publicId: string) => cloudinary.api.resources_by_ids([publicId]).then((result) => result.resources[0].secure_url)
+export const cloudImageDelete = (imageURL: string, cb?: (error: Error | null) => void) => cloudinary.uploader.destroy(path.basename(imageURL, path.extname(imageURL)), { resource_type: 'image', invalidate: true }).then(() => cb && cb(null)).catch((err) => cb && cb(err))
 
 CloudinaryStorage.prototype._handleFile = function _handleFile(_req: Request, file: Express.Multer.File, cb: (error?: any, info?: Partial<Express.Multer.File>) => void) {
   const uploadStream = cloudinary.uploader.upload_stream({ tags: 'images' }, function(err, image) {
@@ -24,8 +24,8 @@ CloudinaryStorage.prototype._handleFile = function _handleFile(_req: Request, fi
 
     const imageData = image as UploadApiResponse
     cb(null, {
-      filename: imageData.public_id,
-      path: imageData.secure_url,
+      filename: imageData.secure_url,
+      path: imageData.public_id,
       size: imageData.bytes
     })
   })
