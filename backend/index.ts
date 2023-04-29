@@ -121,11 +121,11 @@ router.put('/categories/:id', JWTAuth, categoryMiddleware, param('id').toInt().i
             const data: CategoryUpdate = {
                 title: req.body.title
             }
-            let deleteImage = false
+
             if (req.files && 'image' in req.files && req.files.image.length) {
                 data.image = req.files.image[0].filename
-                deleteImage = true
             }
+
             const categoryAfter = await prisma.category.update({
                 where: {
                     id
@@ -134,7 +134,7 @@ router.put('/categories/:id', JWTAuth, categoryMiddleware, param('id').toInt().i
             })
             if (!categoryAfter) return res.status(500).json({ errors: ['Ошибка при попытке обновить категорию'] })
 
-            if (deleteImage) imageDelete(categoryBefore.image)
+            if (data.image) imageDelete(categoryBefore.image)
 
             return res.json(categoryAfter)
         } catch (ex: any) {
@@ -225,10 +225,8 @@ router.put('/items/:id', JWTAuth, itemMiddleware,
                 description: req.body.description,
                 price: req.body.price
             }
-            let deleteImage = false
             if (req.files && 'image' in req.files && req.files.image.length) {
                 data.image = req.files.image[0].filename
-                deleteImage = true
             }
             const itemAfter = await prisma.item.update({
                 where: {
@@ -238,7 +236,7 @@ router.put('/items/:id', JWTAuth, itemMiddleware,
             })
             if (!itemAfter) return res.status(500).json({ errors: ['Ошибка при попытке обновить позицию'] })
 
-            if (deleteImage) imageDelete(itemAfter.image)
+            if (data.image) imageDelete(itemAfter.image)
 
             return res.json(itemAfter)
         } catch (ex: any) {
